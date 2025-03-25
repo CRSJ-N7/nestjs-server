@@ -14,7 +14,7 @@ export class AppController {
     return this.appService.getTestString();
   }
 
-  @Get('shithole')
+  @Get('crypto')
   getSomeNewShit(): string {
     return this.appService.getSomeNewShit();
   }

@@ -8,7 +8,6 @@ export class AppService {
   getTestString(): string {
     return 'Hello, this is some new string!';
   }
-
   getSomeNewShit(): string {
     return crypto.randomUUID();
   }

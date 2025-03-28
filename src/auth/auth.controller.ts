@@ -1,13 +1,36 @@
-import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
+
+interface RequestWithUser extends Request {
+  user: { id: number };
+}
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @HttpCode(HttpStatus.OK)
-  @Post('login')
-  signIn(@Body() signInDto: Record<string, any>) {
-    return this.authService.signIn(signInDto.username, signInDto.password);
+  @Post('sign-up')
+  async signUp(
+    @Body('email') email: string,
+    @Body('password') password: string,
+    @Body('username') username: string,
+  ) {
+    return this.authService.signUp(email, password, username);
+  }
+
+  @Post('sign-in')
+  async signIn(
+    @Body('email') email: string,
+    @Body('password') password: string,
+  ) {
+    return this.authService.signIn(email, password);
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
+  async getMe(@Req() req: RequestWithUser) {
+    return this.authService.getUserById(req.user.id);
   }
 }

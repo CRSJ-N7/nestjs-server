@@ -2,19 +2,25 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppDataSource } from '../dataSource';
+import { AppDataSource } from './dataSource';
 import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import 'reflect-metadata';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      ...AppDataSource.options,
-      autoLoadEntities: true,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    TypeOrmModule.forRootAsync({
+      useFactory: () => ({
+        ...AppDataSource.options,
+        autoLoadEntities: true,
+      }),
+      inject: [ConfigService],
     }),
     AuthModule,
-    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

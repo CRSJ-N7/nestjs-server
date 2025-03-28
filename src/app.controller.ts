@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Header } from '@nestjs/common';
 import { AppService } from './app.service';
 
 @Controller()
@@ -10,12 +10,13 @@ export class AppController {
     return this.appService.getHello();
   }
   @Get('about')
-  getTestString(): string {
-    return this.appService.getTestString();
+  getAboutInfo(): string {
+    return this.appService.getAboutInfo();
   }
 
-  @Get('crypto')
-  getSomeNewShit(): string {
-    return this.appService.getSomeNewShit();
+  @Get('documentation')
+  @Header('Content-Type', 'text/html')
+  getDocs(): string {
+    return this.appService.getDocs();
   }
 }

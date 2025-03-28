@@ -5,10 +5,10 @@ export class AppService {
   getHello(): string {
     return 'Hello, this is my NEST server! (c) CRSJ!';
   }
-  getTestString(): string {
-    return 'Hello, this is some new string!!';
+  getAboutInfo(): string {
+    return 'About information will be added soon';
   }
-  getSomeNewShit(): string {
-    return crypto.randomUUID();
+  getDocs(): string {
+    return '<a href="https://www.youtube.com/watch?v=E4WlUXrJgy4">Documentation</a>';
   }
 }

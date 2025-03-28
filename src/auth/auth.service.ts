@@ -24,6 +24,12 @@ export class EmailTakenException extends ConflictException {
     super('Email already exist');
   }
 }
+
+export interface SafeUser {
+  id: number;
+  email: string;
+  username: string;
+}
 @Injectable()
 export class AuthService {
   constructor(
@@ -35,7 +41,7 @@ export class AuthService {
     email: string,
     password: string,
     username: string,
-  ): Promise<{ user: User; token: string }> {
+  ): Promise<{ safeUser: SafeUser; token: string }> {
     const usernameIsAvailable = await this.userRepository.findOne({
       where: { username },
     });
@@ -56,13 +62,19 @@ export class AuthService {
     });
 
     const token = this.jwtService.sign({ id: user.id });
-    return { user, token };
+    const safeUser: SafeUser = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+    };
+
+    return { safeUser, token };
   }
 
   async signIn(
     email: string,
     password: string,
-  ): Promise<{ user: User; token: string }> {
+  ): Promise<{ safeUser: SafeUser; token: string }> {
     const user = await this.userRepository.findOne({ where: { email } });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -71,7 +83,13 @@ export class AuthService {
       );
     }
     const token = this.jwtService.sign({ id: user.id });
-    return { user, token };
+
+    const safeUser: SafeUser = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+    };
+    return { safeUser, token };
   }
   async getUserById(id: number): Promise<User> {
     // Почему здесь не надо писать Promise<Partial<User>>? Я ж ведь не возвращаю в итоге полного юзера

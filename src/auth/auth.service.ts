@@ -24,12 +24,7 @@ export class EmailTakenException extends ConflictException {
     super('Email already exist');
   }
 }
-
-export interface SafeUser {
-  id: number;
-  email: string;
-  username: string;
-}
+export type SafeUser = Omit<User, 'password'>;
 @Injectable()
 export class AuthService {
   constructor(
@@ -74,10 +69,17 @@ export class AuthService {
   async signIn(
     email: string,
     password: string,
-  ): Promise<{ safeUser: SafeUser; token: string }> {
-    const user = await this.userRepository.findOne({ where: { email } });
+  ): Promise<{ user: SafeUser; token: string }> {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('password')
+      .where('user.email = :email', { email })
+      .getOne();
+    const isPasswordValid = user?.password
+      ? await bcrypt.compare(password, user.password)
+      : false;
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user || !isPasswordValid) {
       throw new UnauthorizedException(
         'Surprise motherfucker. You fucked up somewhere. Email? Password? Thats some confidential shit. Not gonna say, nope.',
       );
@@ -89,10 +91,9 @@ export class AuthService {
       email: user.email,
       username: user.username,
     };
-    return { safeUser, token };
+    return { user: safeUser, token };
   }
   async getUserById(id: number): Promise<User> {
-    // Почему здесь не надо писать Promise<Partial<User>>? Я ж ведь не возвращаю в итоге полного юзера
     const user = await this.userRepository.findOne({
       where: { id },
       select: ['id', 'username', 'email'],
@@ -100,7 +101,6 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('Wtf. User not found');
     }
-
     return user;
   }
 }

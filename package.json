@@ -19,7 +19,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm-cli": "ts-node node_modules/typeorm/cli.js --dataSource src/dataSource.ts",
-    "db:sync": "npm run typeorm-cli -- migration:generate -p src/db/migrations/sync",
+    "db:sync": "npm run typeorm-cli -- migration:generate -p src/migrations/sync",
     "db:migrate:up": "npm run typeorm-cli -- migration:run",
     "db:migrate:down": "npm run typeorm-cli -- migration:revert"
   },
@@ -35,6 +35,8 @@
     "@types/passport-jwt": "^4.0.1",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.14.1",

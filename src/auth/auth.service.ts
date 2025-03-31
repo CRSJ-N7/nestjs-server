@@ -72,17 +72,18 @@ export class AuthService {
   ): Promise<{ user: SafeUser; token: string }> {
     const user = await this.userRepository
       .createQueryBuilder('user')
-      .addSelect('password')
+      .addSelect('user.password')
       .where('user.email = :email', { email })
       .getOne();
-    const isPasswordValid = user?.password
+    if (!user) {
+      throw new UnauthorizedException('Incorrect email');
+    }
+    const isPasswordValid = user.password
       ? await bcrypt.compare(password, user.password)
       : false;
 
-    if (!user || !isPasswordValid) {
-      throw new UnauthorizedException(
-        'Surprise motherfucker. You fucked up somewhere. Email? Password? Thats some confidential shit. Not gonna say, nope.',
-      );
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Incorrect password');
     }
     const token = this.jwtService.sign({ id: user.id });
 

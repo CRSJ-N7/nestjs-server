@@ -100,7 +100,7 @@ export class AuthService {
       select: ['id', 'username', 'email'],
     });
     if (!user) {
-      throw new NotFoundException('Wtf. User not found');
+      throw new NotFoundException('User not found');
     }
     return user;
   }

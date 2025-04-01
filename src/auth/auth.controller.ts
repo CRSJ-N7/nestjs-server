@@ -92,7 +92,7 @@ export class AuthController {
     },
   })
   @ApiBody({
-    type: SignInDto,
+    type: SignUpDto,
     examples: {
       example1: {
         summary: 'Example registration payload',
@@ -128,6 +128,18 @@ export class AuthController {
     type: 'string',
     example: 'SomeFancyPassword123',
   })
+  @ApiBody({
+    type: SignInDto,
+    examples: {
+      example1: {
+        summary: 'Example sign-in payload',
+        value: {
+          email: 'test@mail.com',
+          password: 'SomeFancyPassword123',
+        },
+      },
+    },
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Success',
@@ -145,21 +157,67 @@ export class AuthController {
       },
     },
   })
-  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Bad request',
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Bad request',
     examples: {
       example1: {
         summary: 'Example sign-in bad request',
         value: {
-          
-        }
-      }
-    }
-   })
-  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
+          message: ['Password is required'],
+          error: 'Bad Request',
+          statusCode: 400,
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Unauthorized',
+    examples: {
+      example1: {
+        summary: 'Example sign-in unauthorized error',
+        value: {
+          message: 'Incorrect password',
+          error: 'Unauthorized',
+          statusCode: 401,
+        },
+      },
+    },
+  })
   async signIn(@Body() signInDto: SignInDto) {
     return this.authService.signIn(signInDto.email, signInDto.password);
   }
 
+  @ApiOperation({ summary: 'Sign-in user' })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Not Found',
+    examples: {
+      example1: {
+        summary: 'Example user not found error',
+        value: {
+          message: 'User not found',
+          error: 'Not Found',
+          statusCode: 404,
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Not Found',
+    examples: {
+      example1: {
+        summary: 'Example get user succeed',
+        value: {
+          id: 12,
+          username: 'llll123123l',
+          email: '12345@aA1233.com',
+        },
+      },
+    },
+  })
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
   async getMe(@Req() req: RequestWithUser) {

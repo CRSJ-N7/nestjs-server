@@ -1,16 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { ValidationPipe, BadRequestException } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(
     new ValidationPipe({
-      exceptionFactory: (errors) => {
-        console.log('Validation errors raw:', errors);
-        return new BadRequestException(errors);
-      },
+      // exceptionFactory: (errors) => {
+      //   console.log('Validation errors raw:', errors);
+      //   return new BadRequestException(errors);
+      // },
       stopAtFirstError: true,
       transform: true,
       whitelist: true,

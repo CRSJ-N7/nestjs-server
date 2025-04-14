@@ -18,6 +18,11 @@ async function bootstrap() {
       disableErrorMessages: false,
     }),
   );
+  app.enableCors({
+    origin: true, // или конкретный URL фронта: ['http://localhost:5173']
+    credentials: true, // если используешь куки/авторизацию
+  });
+
   const config = new DocumentBuilder()
     .setTitle('My NestJS API')
     .setDescription('some fancy description')

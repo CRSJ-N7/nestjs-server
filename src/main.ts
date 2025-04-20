@@ -19,8 +19,8 @@ async function bootstrap() {
     }),
   );
   app.enableCors({
-    origin: true, // или конкретный URL фронта: ['http://localhost:5173']
-    credentials: true, // если используешь куки/авторизацию
+    origin: true,
+    credentials: true,
   });
 
   const config = new DocumentBuilder()

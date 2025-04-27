@@ -1,14 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../entities/User';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  ConflictException,
-  UnauthorizedException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
+import { User } from '../entities/User';
 
 export class UsernameTakenException extends ConflictException {
   constructor() {
@@ -37,18 +33,17 @@ export class AuthService {
     password: string,
     username: string,
   ): Promise<{ safeUser: SafeUser; token: string }> {
-    const usernameIsAvailable = await this.userRepository.findOne({
-      where: { username },
+    const existingUser = await this.userRepository.findOne({
+      where: [{ username }, { email }],
+      select: ['username', 'email'],
     });
-    if (usernameIsAvailable) {
-      throw new UsernameTakenException();
-    }
-    const emailIsAvailable = await this.userRepository.findOne({
-      where: { email },
-    });
-    if (emailIsAvailable) {
+    if (existingUser) {
+      if (existingUser.username === username) {
+        throw new UsernameTakenException();
+      }
       throw new EmailTakenException();
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await this.userRepository.save({
       email,
@@ -93,15 +88,5 @@ export class AuthService {
       username: user.username,
     };
     return { user: safeUser, token };
-  }
-  async getUserById(id: number): Promise<User> {
-    const user = await this.userRepository.findOne({
-      where: { id },
-      select: ['id', 'username', 'email'],
-    });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    return user;
   }
 }

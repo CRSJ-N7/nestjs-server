@@ -8,7 +8,7 @@ import {
   HttpStatus,
   HttpCode,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { AuthService, SafeUser } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { SignUpDto } from './dto/signUp.dto';
@@ -16,7 +16,7 @@ import { SignInDto } from './dto/signIn.dto';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
 interface RequestWithUser extends Request {
-  user: { id: number };
+  user: SafeUser;
 }
 
 @Controller('auth')
@@ -220,7 +220,7 @@ export class AuthController {
   })
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
-  async getMe(@Req() req: RequestWithUser) {
-    return this.authService.getUserById(req.user.id);
+  getMe(@Req() req: RequestWithUser) {
+    return req.user;
   }
 }

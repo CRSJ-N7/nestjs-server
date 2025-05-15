@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -99,52 +103,90 @@ export class AuthService {
     if (!existingUser) {
       throw new NotFoundException();
     }
-    if (updateUserDto.username) {
-      const existingUsername = await this.userRepository.findOneBy({
-        username: updateUserDto.username,
-      });
-      if (existingUsername) {
-        throw new UsernameTakenException();
-      }
-      const updateUser = await this.userRepository.save({
-        ...existingUser,
-        username: updateUserDto.username,
-      });
+    console.log(updateUserDto);
+    const allowedKeys = ['username', 'email'];
+    const currentKey = Object.keys(updateUserDto)[0] as keyof UpdateUserDto;
+    if (!allowedKeys.includes(currentKey)) {
+      throw new BadRequestException();
+    }
+    console.log(currentKey);
+    const currentValue = updateUserDto[currentKey];
+    console.log(currentValue);
 
-      const user: SafeUser = {
-        id: updateUser.id,
-        email: updateUser.email,
-        username: updateUser.username,
-      };
-      return { updatedUser: user };
+    const existingUserData = await this.userRepository.findOneBy({
+      [currentKey]: currentValue,
+    });
+    if (existingUserData) {
+      switch (currentKey) {
+        case 'username':
+          throw new UsernameTakenException();
+        case 'email':
+          throw new EmailTakenException();
+        default:
+          break;
+      }
     }
 
-    if (updateUserDto.email) {
-      const existingEmail = await this.userRepository.findOneBy({
-        email: updateUserDto.email,
-      });
-      if (existingEmail) {
-        throw new EmailTakenException();
-      }
-      const updateUser = await this.userRepository.save({
-        ...existingUser,
-        email: updateUserDto.email,
-      });
+    const updateUser = await this.userRepository.save({
+      ...existingUser,
+      [currentKey]: currentValue,
+    });
 
-      const user: SafeUser = {
-        id: updateUser.id,
-        email: updateUser.email,
-        username: updateUser.username,
-      };
-      return { updatedUser: user };
-    }
-
-    return {
-      updatedUser: {
-        id: existingUser.id,
-        email: existingUser.email,
-        username: existingUser.username,
-      },
+    const updatedUser: SafeUser = {
+      id: updateUser.id,
+      email: updateUser.email,
+      username: updateUser.username,
     };
+
+    return { updatedUser };
   }
 }
+// if (updateUserDto.username) {
+//   const existingUsername = await this.userRepository.findOneBy({
+//     username: updateUserDto.username,
+//   });
+//   if (existingUsername) {
+//     throw new UsernameTakenException();
+//   }
+//   const updateUser = await this.userRepository.save({
+//     ...existingUser,
+//     username: updateUserDto.username,
+//   });
+
+//   const user: SafeUser = {
+//     id: updateUser.id,
+//     email: updateUser.email,
+//     username: updateUser.username,
+//   };
+//   return { updatedUser: user };
+// }
+
+// if (updateUserDto.email) {
+//   const existingEmail = await this.userRepository.findOneBy({
+//     email: updateUserDto.email,
+//   });
+//   if (existingEmail) {
+//     throw new EmailTakenException();
+//   }
+//   const updateUser = await this.userRepository.save({
+//     ...existingUser,
+//     email: updateUserDto.email,
+//   });
+
+//   const user: SafeUser = {
+//     id: updateUser.id,
+//     email: updateUser.email,
+//     username: updateUser.username,
+//   };
+//   return { updatedUser: user };
+// }
+
+//     return {
+//       updatedUser: {
+//         id: existingUser.id,
+//         email: existingUser.email,
+//         username: existingUser.username,
+//       },
+//     };
+//   }
+// }

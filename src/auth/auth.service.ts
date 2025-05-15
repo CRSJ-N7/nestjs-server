@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { User } from '../entities/User';
+import { UpdateUserDto } from './dto/updateUser.dto';
 
 export class UsernameTakenException extends ConflictException {
   constructor() {
@@ -21,6 +22,7 @@ export class EmailTakenException extends ConflictException {
   }
 }
 export type SafeUser = Omit<User, 'password'>;
+export type UpdatedUser = Omit<SafeUser, 'email' | 'username'>;
 @Injectable()
 export class AuthService {
   constructor(
@@ -88,5 +90,61 @@ export class AuthService {
       username: user.username,
     };
     return { user: safeUser, token };
+  }
+  async updateUser(
+    userId: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<{ updatedUser: SafeUser }> {
+    const existingUser = await this.userRepository.findOneBy({ id: userId });
+    if (!existingUser) {
+      throw new NotFoundException();
+    }
+    if (updateUserDto.username) {
+      const existingUsername = await this.userRepository.findOneBy({
+        username: updateUserDto.username,
+      });
+      if (existingUsername) {
+        throw new UsernameTakenException();
+      }
+      const updateUser = await this.userRepository.save({
+        ...existingUser,
+        username: updateUserDto.username,
+      });
+
+      const user: SafeUser = {
+        id: updateUser.id,
+        email: updateUser.email,
+        username: updateUser.username,
+      };
+      return { updatedUser: user };
+    }
+
+    if (updateUserDto.email) {
+      const existingEmail = await this.userRepository.findOneBy({
+        email: updateUserDto.email,
+      });
+      if (existingEmail) {
+        throw new EmailTakenException();
+      }
+      const updateUser = await this.userRepository.save({
+        ...existingUser,
+        email: updateUserDto.email,
+      });
+
+      const user: SafeUser = {
+        id: updateUser.id,
+        email: updateUser.email,
+        username: updateUser.username,
+      };
+      return { updatedUser: user };
+    }
+
+    return {
+      updatedUser: {
+        id: existingUser.id,
+        email: existingUser.email,
+        username: existingUser.username,
+      },
+    };
   }
 }

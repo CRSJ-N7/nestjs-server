@@ -7,6 +7,7 @@ import {
   Req,
   HttpStatus,
   HttpCode,
+  Patch,
 } from '@nestjs/common';
 import { AuthService, SafeUser } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -14,6 +15,7 @@ import { Request } from 'express';
 import { SignUpDto } from './dto/signUp.dto';
 import { SignInDto } from './dto/signIn.dto';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { UpdateUserDto } from './dto/updateUser.dto';
 
 interface RequestWithUser extends Request {
   user: SafeUser;
@@ -222,5 +224,14 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   getMe(@Req() req: RequestWithUser) {
     return req.user;
+  }
+
+  @Patch('update')
+  @UseGuards(AuthGuard('jwt'))
+  async update(
+    @Req() req: RequestWithUser,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.authService.updateUser(req.user.id, updateUserDto);
   }
 }

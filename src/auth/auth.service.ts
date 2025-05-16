@@ -103,19 +103,20 @@ export class AuthService {
     if (!existingUser) {
       throw new NotFoundException();
     }
-    console.log(updateUserDto);
     const allowedKeys = ['username', 'email'];
-    const currentKey = Object.keys(updateUserDto)[0] as keyof UpdateUserDto;
+    const currentKey = Object.keys(updateUserDto).find(
+      (key) => updateUserDto[key] !== undefined,
+    ) as keyof UpdateUserDto;
+
     if (!allowedKeys.includes(currentKey)) {
       throw new BadRequestException();
     }
-    console.log(currentKey);
-    const currentValue = updateUserDto[currentKey];
-    console.log(currentValue);
+    const currentKeyValue = updateUserDto[currentKey];
 
     const existingUserData = await this.userRepository.findOneBy({
-      [currentKey]: currentValue,
+      [currentKey]: currentKeyValue,
     });
+
     if (existingUserData) {
       switch (currentKey) {
         case 'username':
@@ -123,13 +124,13 @@ export class AuthService {
         case 'email':
           throw new EmailTakenException();
         default:
-          break;
+          throw new BadRequestException();
       }
     }
 
     const updateUser = await this.userRepository.save({
       ...existingUser,
-      [currentKey]: currentValue,
+      [currentKey]: currentKeyValue,
     });
 
     const updatedUser: SafeUser = {
@@ -140,7 +141,43 @@ export class AuthService {
 
     return { updatedUser };
   }
+  async updateUserPassword(
+    userId: number,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<{ user: SafeUser }> {
+    const existingUser = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.id = :id', { id: userId }) // а почему здесь должно быть именно id: userId, а не просто id? За что вообще отвечает выражение в скобках?
+      .getOne();
+    if (!existingUser) throw new NotFoundException();
+
+    const isPasswordValid = existingUser.password
+      ? await bcrypt.compare(currentPassword, existingUser.password)
+      : false;
+    console.log(isPasswordValid);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Incorrect password');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const updatedUser = await this.userRepository.save({
+      ...existingUser,
+      password: hashedPassword,
+    });
+
+    const safeUser = {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      username: updatedUser.username,
+    };
+
+    return { user: safeUser };
+  }
 }
+
 // if (updateUserDto.username) {
 //   const existingUsername = await this.userRepository.findOneBy({
 //     username: updateUserDto.username,

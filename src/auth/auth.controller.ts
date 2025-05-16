@@ -16,6 +16,7 @@ import { SignUpDto } from './dto/signUp.dto';
 import { SignInDto } from './dto/signIn.dto';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { ChangePasswordDto } from './dto/changePassword.dto.';
 
 interface RequestWithUser extends Request {
   user: SafeUser;
@@ -226,12 +227,25 @@ export class AuthController {
     return req.user;
   }
 
-  @Patch('update')
+  @Patch('profile')
   @UseGuards(AuthGuard('jwt'))
   async update(
     @Req() req: RequestWithUser,
     @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.authService.updateUser(req.user.id, updateUserDto);
+  }
+
+  @Patch('password')
+  @UseGuards(AuthGuard('jwt'))
+  async passwordUpdate(
+    @Req() req: RequestWithUser,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return this.authService.updateUserPassword(
+      req.user.id,
+      dto.currentPassword,
+      dto.newPassword,
+    );
   }
 }

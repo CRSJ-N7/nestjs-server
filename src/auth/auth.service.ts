@@ -84,7 +84,7 @@ export class AuthService {
       : false;
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Incorrect password');
+      throw new UnauthorizedException('Incorrect current password');
     }
     const token = this.jwtService.sign({ id: user.id });
 

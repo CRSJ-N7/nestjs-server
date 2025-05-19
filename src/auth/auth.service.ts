@@ -107,6 +107,16 @@ export class AuthService {
     const currentKey = Object.keys(updateUserDto).find(
       (key) => updateUserDto[key] !== undefined,
     ) as keyof UpdateUserDto;
+    // А вот ещё придумал второй "мегаспособ" получения ключа (но первый мне нравится больше :3):
+    // const currentKey = Object.entries(updateUserDto);
+    // const getCurrentKey = () => {
+    //   if (currentKey[0][1] !== undefined) {
+    //     return 'email';
+    //   } else {
+    //     return 'username';
+    //   }
+    // };
+    // console.info(getCurrentKey());
 
     if (!allowedKeys.includes(currentKey)) {
       throw new BadRequestException();
